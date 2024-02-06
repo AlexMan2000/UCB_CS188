@@ -388,7 +388,6 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
 
     unvisited_corners = [corners[i] for i, item in enumerate(currentBoolean) if item == 0]
 
-    # print(unvisited_corners)
     # return len(unvisited_corners)
     if len(unvisited_corners) == 0:
         return 0
@@ -508,8 +507,32 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
         else:
             return max([euclidean_distance(position, food) for food in foodGrid.asList()])
 
+    # Max Distance of Uneaten Food(L1 Distance)
+    # 11254 for manhattan distance
+    # 11896 for euclidean distance
+    def avg_dist_uneaten_food(position, foodGrid, mode="man"):
+        foodList = foodGrid.asList()
+        length = len(foodList)
+        if length == 0:
+            return 0
+
+        if mode == "man":
+            return sum([manhanttan_distance(position, food) for food in foodGrid.asList()]) / length
+        else:
+            return sum([euclidean_distance(position, food) for food in foodGrid.asList()]) / length
+
+    # Actual Max Distance, 4137!
+    def mazeDistance_wrapper(position, foodGrid, problem):
+        gameState = problem.startingGameState
+        uneaten_food = foodGrid.asList()
+        if len(uneaten_food) == 0:
+            return 0
+        return max([mazeDistance(position, food, gameState) for food in uneaten_food])
+
     # return num_uneaten_food(foodGrid)
-    return max_dist_uneaten_food(position, foodGrid, mode = "eu")
+    # return max_dist_uneaten_food(position, foodGrid, mode = "man")
+    # return avg_dist_uneaten_food(position, foodGrid, mode = "man")
+    return mazeDistance_wrapper(position, foodGrid, problem)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
