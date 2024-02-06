@@ -72,6 +72,52 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+
+
+
+class SearchNode:
+
+    def __init__(self, state, action = None, parent = None, cost = None, heuristic = None, problem = None):
+        self.parent = parent
+        self.a = action  # From what action
+        self.s = state
+        self.g = cost
+        self.h = heuristic
+        self.p = problem
+        if self.h is not None:
+            if self.p is None:
+                raise AttributeError("A star is active, need problem parameter to be non-null!")
+
+    def construct_path(self):
+        res = [self]
+        curr = self
+        while curr is not None:
+            res.append(curr.get_state())
+            curr = curr.parent
+        return list(reversed(res))
+
+    def construct_action(self):
+        res = []
+        curr = self
+        while curr.parent is not None:
+            res.append(curr.a)
+            curr = curr.parent
+
+        return list(reversed(res))
+
+    def get_state(self):
+        return self.s
+
+    def get_cost(self):
+        return self.g
+
+    def get_heuristic(self):
+        return 0 if self.h is None else self.h(self.s, self.p)
+
+    def get_priority(self):
+        return self.get_heuristic() + self.get_cost()
+
+
 def depthFirstSearch(problem: SearchProblem):
     """
     Search the deepest nodes in the search tree first.
@@ -87,17 +133,80 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.Stack()
+    visited = set()
+
+    s = problem.getStartState()
+    fringe.push(SearchNode(state = s, action =None, parent =None, cost = 0))
+    while not fringe.isEmpty():
+        curr_node = fringe.pop()
+        curr_state = curr_node.get_state()
+        if problem.isGoalState(curr_state):
+            return curr_node.construct_action()
+
+        # Prevent multiple path, multi-expanded problem(2nd version)
+        if curr_state not in visited:
+            visited.add(curr_state)
+            # getSuccessors() return (child_state, action, cost_of_action)
+            for child_state_tuple in problem.getSuccessors(curr_state):
+                child_state, action, cost = child_state_tuple
+                fringe.push(SearchNode(child_state, action, curr_node, curr_node.get_cost() + cost))
+
+
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.Queue()
+    visited = set()
+
+    s = problem.getStartState()
+    fringe.push(SearchNode(state=s, action=None, parent=None, cost=0))
+    while not fringe.isEmpty():
+        curr_node = fringe.pop()
+        curr_state = curr_node.get_state()
+        if problem.isGoalState(curr_state):
+            return curr_node.construct_action()
+        # This if statement is important to prevent duplicate visits to the same state
+        # with different path history
+        if curr_state not in visited:
+            visited.add(curr_state)
+            # getSuccessors() return (child_state, action, cost_of_action)
+            for child_state_tuple in problem.getSuccessors(curr_state):
+                child_state, action, cost = child_state_tuple
+                fringe.push(SearchNode(child_state, action, curr_node, curr_node.get_cost() + cost))
+
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()
+    visited = set()
+
+    s = problem.getStartState()
+    s_node = SearchNode(state=s
+                        ,action=None
+                        ,parent=None
+                        ,cost=0)
+    fringe.push(s_node, s_node.get_priority())
+    while not fringe.isEmpty():
+        curr_node = fringe.pop()
+        curr_state = curr_node.get_state()
+        if problem.isGoalState(curr_state):
+            return curr_node.construct_action()
+        # This if statement is important to prevent duplicate visits to the same state
+        # with different path history
+        if curr_state not in visited:
+            visited.add(curr_state)
+            # getSuccessors() return (child_state, action, cost_of_action)
+            for child_state_tuple in problem.getSuccessors(curr_state):
+                child_state, action, cost = child_state_tuple
+                child_node = SearchNode(state = child_state
+                                        ,action = action
+                                        ,parent = curr_node
+                                        ,cost = curr_node.get_cost() + cost)
+                fringe.push(child_node, child_node.get_priority())
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +218,31 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()
+    visited = set()
+
+    s = problem.getStartState()
+    s_node = SearchNode(state=s, action=None, parent=None, cost=0, heuristic=heuristic, problem=problem)
+    fringe.push(s_node, s_node.get_priority())
+    while not fringe.isEmpty():
+        curr_node = fringe.pop()
+        curr_state = curr_node.get_state()
+        if problem.isGoalState(curr_state):
+            return curr_node.construct_action()
+        # This if statement is important to prevent duplicate visits to the same state
+        # with different path history
+        if curr_state not in visited:
+            visited.add(curr_state)
+            # getSuccessors() return (child_state, action, cost_of_action)
+            for successor in problem.getSuccessors(curr_state):
+                child_state, action, cost = successor
+                child_node = SearchNode(state=child_state
+                                        ,action=action
+                                        ,parent=curr_node
+                                        ,cost=curr_node.get_cost() + cost
+                                        ,heuristic=heuristic
+                                        ,problem=problem)
+                fringe.push(child_node, child_node.get_priority())
 
 
 # Abbreviations
