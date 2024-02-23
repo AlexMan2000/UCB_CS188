@@ -75,7 +75,29 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
+
+        # Calculate the reciprocal of total manhattan distance from the pacman to the food.
+        # (The lower the better)
+        from functools import reduce
+        reciprocal_manhattan_food = 1 / reduce(lambda x, y: \
+                                               ReflexAgent.compute_manhattan(x, newPos) \
+                                               + ReflexAgent.compute_manhattan(y, newPos) \
+                                           , newFood.asList())
+
+        # Calculate the total distance to ghost(the higher the better)
+        # manhattan_ghost = ReflexAgent.compute_manhattan(newPos, )
+
+        # print(successorGameState)
+        # print(newPos)
+        # print(newFood.asList())
+        # print(newGhostStates[0])
+        # print(newScaredTimes)
+
         return successorGameState.getScore()
+
+    @staticmethod
+    def compute_manhattan(point1, point2):
+        return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
